@@ -15,7 +15,7 @@ float randomInRange(float min, float max);
 // game settings
 extern bool restartGame;
 extern bool mainMenu;
-const float MOVEMENT_SPEED = 12.0f;
+extern float MOVEMENT_SPEED;
 extern bool gameOver;
 
 extern sf::Music music;

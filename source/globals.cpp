@@ -3,6 +3,8 @@
 std::random_device rd;
 std::mt19937 gen(rd()); // for use with random
 
+float MOVEMENT_SPEED = 12.0f;
+
 // game settings
 bool restartGame = false;
 bool IS_RAINING = true;
@@ -11,11 +13,11 @@ bool DISABLE_SLOW_MO = false;
 bool HIGH_RENDER_DISTANCE = false;
 bool ENABLE_VSYNC = false;
 bool ENABLE_TEXT = true;
-bool ENABLE_SOUND = true;
+bool ENABLE_SOUND = false;
 bool text = true;
-bool FREECAM_CONTROLS_ENABLED = false;
+bool FREECAM_CONTROLS_ENABLED = true;
 bool CONTROLS_ENABLED = true;
-bool SHOW_FPS = false;
+bool SHOW_FPS = true;
 
 sf::Music music;
 sf::Music winSong;
@@ -37,7 +39,7 @@ bool mainMenu = true;
 int menuChoice = 0;
 bool enterKeyPressed = false;
 
-bool isRaining = true;
+bool isRaining = false;
 float fov = 90;
 
 float deltaTime = 0.0f;

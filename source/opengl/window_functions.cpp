@@ -158,7 +158,7 @@ void processInput(GLFWwindow* window){
                     menuChoice -= 1;
                 }
                 else
-                    menuChoice = 7;
+                    menuChoice = 2;
             }
             prevButtonUp = state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == GLFW_PRESS;
 
@@ -168,7 +168,7 @@ void processInput(GLFWwindow* window){
                 dPadDown = false;
 
             if (!prevButtonDown && state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN] == GLFW_PRESS && !enterKeyPressed){
-                if(menuChoice < 7){
+                if(menuChoice < 2){
                     menuChoice += 1;
                 }
                 else
@@ -203,7 +203,7 @@ void processInput(GLFWwindow* window){
             prevButtonSelect = state.buttons[GLFW_GAMEPAD_BUTTON_BACK] == GLFW_PRESS;
     }
 
-    const float cameraSpeed = CAMERA_SPEED * deltaTime;
+
 
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
@@ -215,6 +215,12 @@ void processInput(GLFWwindow* window){
     if (FREECAM_CONTROLS_ENABLED){
         terrainCoordBelowCamera = getHeight(cameraPos.x, cameraPos.z);
         const float collisionLimit = terrainCoordBelowCamera + 1.0f;
+
+        if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+            MOVEMENT_SPEED = 50.0f;
+        else
+            MOVEMENT_SPEED = 12.0f;
+        const float cameraSpeed = MOVEMENT_SPEED * deltaTime;
 
         if (glfwJoystickPresent(GLFW_JOYSTICK_1) == GLFW_TRUE){
             GLFWgamepadstate state;
@@ -235,6 +241,9 @@ void processInput(GLFWwindow* window){
             }
 
         }
+
+
+
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS){
             cameraPos -= cameraSpeed * cameraFront;
             if (cameraPos.y <= collisionLimit){
@@ -361,15 +370,16 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             menuChoice -= 1;
         }
         else
-            menuChoice = 7;
+            menuChoice = 2;
     }
     if (key == GLFW_KEY_DOWN && action == GLFW_PRESS && !enterKeyPressed) {
-        if(menuChoice < 7){
+        if(menuChoice < 2){
             menuChoice += 1;
         }
         else
             menuChoice = 0;
     }
+
     if (key == GLFW_KEY_K && action == GLFW_PRESS && !enemyFightingToggle && timeElapsed > 1.0f && CONTROLS_ENABLED) {
         float playerToEnemyDistance = calculateDistance(glm::vec3(player[3][0], player[3][1], player[3][2]), glm::vec3(enemy[3][0], enemy[3][1], enemy[3][2]));
         if (playerToEnemyDistance < 2.5f)

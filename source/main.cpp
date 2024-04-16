@@ -121,27 +121,12 @@ int main(){
     std::vector<float> cloudAtlasUV = {0.6875f, 1.0f, 0.25f, 0.375f}; // these textures take up multiple 64x64 pixel grids so I gave it hard coded numbers.
     std::vector<float> treeAtlasUV = {0.75f, 1.0f, 0.0625f, 0.25f};
 
-    // ----- INITIALIZE SOUNDS -----
-    if (!loadSoundBuffer("resources/sounds/punch.wav")) {
-        std::cerr << "Could not load sound file." << std::endl;
-        return -1;
-    }
-    playSoundSilentlyMultipleTimes(30);
-    music.openFromFile("resources/music/Dual-Dragon.wav");
-    music.setVolume(30.0f);
-    music.setLoop(true);
-
-    winSong.openFromFile("resources/music/WinSong.wav");
-    winSong.setVolume(30.0f);
-
-    sf::SoundBuffer buffer2;
-    if (!buffer2.loadFromFile("resources/sounds/explosion.wav")) {
-        return -1; // error loading file
-    }
-    explosionSound.setBuffer(buffer2);
-    explosionSound.setVolume(75.0f);
-
     // ----- INITIALIZE OBJECTS -----
+
+    // camera position
+    cameraPos.x = 0.0f;
+    cameraPos.y = getHeight(0.0f, 0.0f) + 5.0f;
+    cameraPos.z = 0.0f;
 
     // initialize various sphere locations
     float heightOffset = 50.0f;
@@ -151,18 +136,6 @@ int main(){
         initialSpherePositions[i] = initialSpherePositions[i] * glm::vec3(30.0f, 30.0f, 30.0f);
         initialSpherePositions[i].y = 10.0f + heightOffset;
     }
-
-    // enemy
-    enemyGoTo = glm::vec3(0.0f, 0.0f, 0.0f);
-    enemyGoTo.y = getHeight(enemyGoTo.x, enemyGoTo.z) + 0.51f;
-    enemy[3][0] = enemyGoTo.x;
-    enemy[3][1] = enemyGoTo.y;
-    enemy[3][2] = enemyGoTo.z;
-
-    // player
-    player[3][0] = 0.0f;
-    player[3][1] = getHeight(0.0f, -5.0f) + 0.51f;
-    player[3][2] = -3.5f;
 
     // 1 terrain
     shape terrains[1];
@@ -256,28 +229,8 @@ int main(){
         }
 
         float currentFrame = glfwGetTime();
-        std::string animationText;
-        if (gameOver){
-            deltaTime = 0.0f;
-            handleGameOver(player, enemy, animationText);
-            if (!gameOver){
-                for (int i = 0; i < rainDropsArraySize; i++)
-                    initializeRainLocation(rainDrops[i]);
-            }
-        }
-        else if (animationModeActivate){  // animation mode! (executes when health is less than -300 or greater than 300)
-            animationDeltaTime = currentFrame - lastFrame;
-            deltaTime = currentFrame - lastFrame;
-            deltaTime /= 3.0f;
-            handleAnimationMode(animationText);
-        }
-        else{
-            deltaTime = currentFrame - lastFrame;
-        }
+        deltaTime = currentFrame - lastFrame;
 
-
-        if (SLOW_MO)
-            deltaTime /= SLOW_MO_MULTIPLIER;
         lastFrame = currentFrame;
         processInput(window);
 
@@ -301,302 +254,6 @@ int main(){
         phongShader.setMat4("projection", projection);
         phongShader.setVec3("viewPos", cameraPos);
 
-        // ----- DRAW PLAYER / ENEMY -----
-
-        // ### PLAYER
-        billboardShader.use();
-        glBindVertexArray(phongBillboardVAO);
-        int orientation = calculateOrientationSpriteIndex(view, glm::vec3(player[3][0], player[3][1], player[3][2]), glm::vec3(enemy[3][0], enemy[3][1], enemy[3][2]));
-        glm::vec3 playerPos = glm::vec3(player[3][0], player[3][1], player[3][2]);
-        glm::vec3 enemyPos = glm::vec3(enemy[3][0], enemy[3][1], enemy[3][2]);
-        std::vector<float> playerUV = returnTextureUV(0, 3 + orientation);
-
-        float playerHeightAboveTerrain = getHeight(player[3][0], player[3][2]);
-        if (player[3][1] < playerHeightAboveTerrain + 0.5f){
-            player[3][1] = playerHeightAboveTerrain + 0.5f;
-        }
-
-        // handle player teleporting (and teleporting rain particles)
-        float distanceFromEnemy = calculateDistance(glm::vec3(player[3][0], player[3][1], player[3][2]), glm::vec3(enemy[3][0], enemy[3][1], enemy[3][2]));
-        if (distanceFromEnemy > 50.0f)
-            allowPlayerTeleportation = true;
-        else
-            allowPlayerTeleportation = false;
-
-        if (teleportKeyPressed && allowPlayerTeleportation){
-            player[3][0] = enemy[3][0] - 1.0f;
-            player[3][1] = enemy[3][1];
-            player[3][2] = enemy[3][2];
-
-            cameraPos.x = player[3][0];
-            cameraPos.y = player[3][1];
-            cameraPos.z = player[3][2] + 3.5f;
-
-            for (int i = 0; i < rainDropsArraySize; i++)
-                initializeRainLocation(rainDrops[i]);
-        }
-
-        if (!FREECAM_CONTROLS_ENABLED){
-            cameraPos.y = player[3][1];
-            float cameraHeightAboveTerrain = getHeight(cameraPos.x, cameraPos.z);
-
-            if (cameraPos.y < cameraHeightAboveTerrain + 1.0f){
-                cameraPos.y = cameraHeightAboveTerrain + 1.0f;
-            }
-
-            // handle player animations
-            if (!enemyFightingToggle){
-                handleFightAnimations(distanceFromEnemy, currentFrame, playerUV, true);
-            }
-
-            cameraFront = glm::normalize(glm::vec3(player[3][0], player[3][1], player[3][2]) - cameraPos);
-            view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-        }
-        // render player
-        if (enemyFightingToggle && !playerShieldToggle)
-            playerUV = playerInjuryUV;
-        if (playerShieldEnabled || playerShieldToggle){
-            setTextureUV(billboardShader, playerShieldUV, false);
-            billboardShader.setMat4("model", player);
-            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        }
-        setTextureUV(billboardShader, playerUV, false);
-        billboardShader.setMat4("model", player);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-        // ### ENEMY
-        float enemyHeightAboveTerrain = getHeight(enemy[3][0], enemy[3][2]);
-        if (enemy[3][1] < enemyHeightAboveTerrain + 0.5f){
-            enemy[3][1] = enemyHeightAboveTerrain + 0.5f;
-        }
-
-        float determinedTime = 3.0f;
-        if (SLOW_MO){
-            determinedTime *= SLOW_MO_MULTIPLIER;
-        }
-        if (playerFightingToggle && distanceFromEnemy < 1.3f && !(enemyWaitTime > determinedTime)) // if enemy is getting damaged
-            playerUV = enemyInjuryUV;
-        else{
-            orientation = calculateOrientationSpriteIndex(view, glm::vec3(enemy[3][0], enemy[3][1], enemy[3][2]), glm::vec3(player[3][0], player[3][1], player[3][2]));
-            playerUV = returnTextureUV(0, 7 + orientation);
-        }
-
-        if (ENEMY_MOVMENT && !FREECAM_CONTROLS_ENABLED){
-            float enemyGoToDistance = calculateDistance(enemyPos, enemyGoTo);
-            float distanceFromPlayer = calculateDistance(enemyPos, playerPos);
-            enemyWaitTime = currentFrame - timeSinceLastEnemyWait;
-
-            if (enemyWaitTime > determinedTime && !enemyFightingToggle){
-                moveEnemyToPoint(enemyGoTo, deltaTime, MOVEMENT_SPEED * 0.8);
-                float terrainY = getHeight(enemy[3][0], enemy[3][2]);
-                if (enemy[3][1] < terrainY){
-                    enemy[3][1] = terrainY;
-                }
-            }
-
-            if (distanceFromPlayer < 1.0f && !enemyFightingToggle){ // every half second there is a 20% chance of attack
-                    if (currentFrame - timeSinceLastEnemyThought > 0.5f && !playerCurrentlyFighting && !enemyFightingToggle){
-                        timeSinceLastEnemyThought = glfwGetTime();
-                        int randomChance = randomInRange(0.0f, 100.0f);
-                        if (randomChance <= 20.0f || enemyOffensiveMode){
-                            if (playerShieldEnabled)
-                                playerShieldToggle = true;
-                            else
-                                playerShieldToggle = false;
-
-                            enemyFightingToggle = true;
-                            timeSinceEnemyFightInit = glfwGetTime();
-                        }
-                    }
-            }
-            // handle enemy fighting animations
-            if (enemyFightingToggle){
-                if (currentFrame - timeSinceEnemyFightInit > 3.0f){
-                    timeSinceLastEnemyThought = glfwGetTime();
-                    playerShieldToggle = false;
-                    enemyFightingToggle = false;
-                    timeSinceEnemyFightInit = glfwGetTime();
-                    cameraPos.x = player[3][0];
-                    cameraPos.y = player[3][1];
-                    cameraPos.z = player[3][2] + 3.5f;
-                }
-                else
-                    handleFightAnimations(distanceFromPlayer, currentFrame, playerUV, false);
-            }
-
-
-            if (enemyGoToDistance < 1.0f){ // enemy calculates where to go next
-                // calculate whether the enemy will be offensive or defensive
-                float chance = randomInRange(0.0f, 100.0f);
-                if (chance > 20.0f)
-                    enemyOffensiveMode = true;
-                else
-                    enemyOffensiveMode = false;
-                if (!enemyOffensiveMode){
-                    glm::vec3 oldEnemyPos = glm::vec3(enemy[3][0], enemy[3][1], enemy[3][2]);
-                    glm::vec3 newEnemyPos = glm::vec3(randomInRange(-100, 100) + enemy[3][0], 0, randomInRange(-100, 100) + enemy[3][2]);
-                    float distanceFromPos = calculateDistance(oldEnemyPos, newEnemyPos);
-                    int attempts = 0;
-                    while (newEnemyPos.x > 300.0f || newEnemyPos.x < -300.0f || newEnemyPos.z > 300.0f || newEnemyPos.z < -300.0f && attempts < 100){
-                        newEnemyPos = glm::vec3(randomInRange(-100, 100) + enemy[3][0], 0, randomInRange(-100, 100) + enemy[3][2]);
-                        distanceFromPos = calculateDistance(oldEnemyPos, newEnemyPos);
-                        attempts += 1;
-                    }
-                    enemyGoTo = newEnemyPos;
-                    enemyGoTo.y = getHeight(enemyGoTo.x, enemyGoTo.z) + randomInRange(0.51f, 2.9f);
-                }
-
-
-                enemyWaitTime = glfwGetTime();
-                timeSinceLastEnemyWait = currentFrame;
-            }
-            if (enemyOffensiveMode){
-                enemyGoTo = glm::vec3(player[3][0], player[3][1], player[3][2]);
-            }
-        }
-
-        billboardShader.use();
-        glBindVertexArray(phongBillboardVAO);
-
-
-        if (animationModeActivate){
-            if (health >= 300.0f)
-                playerUV = enemyInjuryUV;
-        }
-        setTextureUV(billboardShader, playerUV, false);
-        billboardShader.setMat4("model", enemy);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-        // ----- EFFECTS ------
-        // render all punches
-        for (int i = 0; i < existingPunches.size(); i++){
-            float timeMultiplier = 0.05f;
-            if (SLOW_MO){
-                timeMultiplier *= SLOW_MO_MULTIPLIER;
-            }
-
-            if (currentFrame - existingPunches[i].timeSinceExistence > timeMultiplier){
-                existingPunches.erase(existingPunches.begin() + i);
-            }
-
-            else{
-                std::vector<float> punchTexture = returnTextureUV(existingPunches[i].textureXCoord, 1);
-                setTextureUV(billboardShader, punchTexture, false);
-                billboardShader.setMat4("model", existingPunches[i].modelMatrix);
-                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-            }
-
-        }
-
-        // render all dusts
-        for (int i = 0; i < existingDusts.size(); i++){
-            float existingTime = currentFrame - existingDusts[i].timeSinceExistence;
-
-            if (existingTime < 0.2f){
-                setTextureUV(billboardShader, dust1AtlasUV, false);
-                billboardShader.setMat4("model", existingDusts[i].modelMatrix);
-                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-            }
-            else if (existingTime < 0.4f){
-                setTextureUV(billboardShader, dust2AtlasUV, false);
-                billboardShader.setMat4("model", existingDusts[i].modelMatrix);
-                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-            }
-            else if (existingTime < 0.6f){
-                setTextureUV(billboardShader, dust3AtlasUV, false);
-                billboardShader.setMat4("model", existingDusts[i].modelMatrix);
-                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-            }
-            else
-                existingDusts.erase(existingDusts.begin() + i);
-        }
-
-        // render all sparks
-        for (int i = 0; i < existingSparks.size(); i++){
-            float existingTime = currentFrame - existingSparks[i].timeSinceExistence;
-
-            if (existingTime < 0.05f){
-                setTextureUV(billboardShader, spark1AtlasUV, false);
-                billboardShader.setMat4("model", existingSparks[i].modelMatrix);
-                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-            }
-            else if (existingTime < 0.1f){
-                setTextureUV(billboardShader, spark2AtlasUV, false);
-                billboardShader.setMat4("model", existingSparks[i].modelMatrix);
-                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-            }
-            else if (existingTime < 0.15f){
-                setTextureUV(billboardShader, spark3AtlasUV, false);
-                billboardShader.setMat4("model", existingSparks[i].modelMatrix);
-                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-            }
-            else
-                existingSparks.erase(existingSparks.begin() + i);
-        }
-
-        if (laserAttackCharge > 250.0f){ // generate a laser attack!!
-            health += 350.0f;
-            handleHealth();
-            glm::vec3 enemyDir = glm::normalize(glm::vec3(player[3][0], player[3][1], player[3][2]) - glm::vec3(enemy[3][0], enemy[3][1], enemy[3][2]));
-            for (int i = 1; i < 100; i++){
-                dustEntity newDust;
-                glm::vec3 newDustPos = glm::vec3(player[3][0], player[3][1], player[3][2]);
-                newDustPos -= enemyDir * static_cast<float>(i) * 0.5f;
-                newDust.modelMatrix[3][0] = newDustPos.x;
-                newDust.modelMatrix[3][1] = newDustPos.y;
-                newDust.modelMatrix[3][2] = newDustPos.z;
-                existingExplosions.push_back(newDust);
-                float oldDustPos = newDustPos.x;
-                if (i < 5){
-                    newDust.modelMatrix[3][1] = newDustPos.y;
-                    existingExplosions.push_back(newDust);
-                }
-
-                // generate smoke underneath each laser particle
-                if (i < 20){
-                    float smokeHeight = getHeight(newDustPos.x, newDustPos.z);
-                    newDust.modelMatrix[3][0] = newDustPos.x;
-                    newDust.modelMatrix[3][1] = smokeHeight + 0.5f;
-                    newDust.modelMatrix[3][2] = newDustPos.z;
-                    if (smokeHeight < newDustPos.y){
-                        existingDusts.push_back(newDust);
-                        newDust.modelMatrix[3][0] = oldDustPos + 0.75f;
-                        existingDusts.push_back(newDust);
-                        newDust.modelMatrix[3][0] = oldDustPos - 0.75f;
-                        existingDusts.push_back(newDust);
-                    }
-
-                }
-            }
-
-            laserAttackCharge = 0.0f;
-            if (ENABLE_SOUND)
-                explosionSound.play();
-        }
-        // render all explosions (from laser attack)
-        for (int i = 0; i < existingExplosions.size(); i++){
-            float existingTime = currentFrame - existingExplosions[i].timeSinceExistence;
-
-            if (existingTime < 0.35f){
-                setTextureUV(billboardShader, punch1AtlasUV, false);
-                billboardShader.setMat4("model", existingExplosions[i].modelMatrix);
-                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-            }
-            else if (existingTime < 0.7f){
-                setTextureUV(billboardShader, punch2AtlasUV, false);
-                billboardShader.setMat4("model", existingExplosions[i].modelMatrix);
-                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-            }
-            else if (existingTime < 1.05f){
-                setTextureUV(billboardShader, punch3AtlasUV, false);
-                billboardShader.setMat4("model", existingExplosions[i].modelMatrix);
-                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-            }
-            else
-                existingExplosions.erase(existingExplosions.begin() + i);
-        }
-
-
         // ----- OBJECTS ------
 
         // ### TERRAIN
@@ -607,33 +264,6 @@ int main(){
 
             phongShader.setMat4("model", terrains[i].modelMatrix);
             glDrawElements(GL_TRIANGLES, phongTerrainIndicesVector.size(), GL_UNSIGNED_INT, 0);
-        }
-
-        // ### RAIN
-        if (IS_RAINING){
-            billboardShader.use();
-            glBindVertexArray(phongBillboardVAO);
-            setTextureUV(billboardShader, rainAtlasUV, false);
-            for (int i = 0; i < rainDropsArraySize; i++){
-                rainDrops[i].modelMatrix[3][1] -= rainDrops[i].speed * deltaTime;
-
-                if (rainDrops[i].modelMatrix[3][1] < player[3][1] - 5.0f){ // check if rain is below player first before performing other checks
-                    setRainLocation(rainDrops[i]);
-                }
-                else{
-                    float distanceFromPlayerZ = std::fabs(rainDrops[i].modelMatrix[3][2] - player[3][2]);
-                    float distanceFromPlayerX = std::fabs(rainDrops[i].modelMatrix[3][0] - player[3][0]);
-
-                    if (distanceFromPlayerZ > 15.0f || distanceFromPlayerX > 15.0f){
-                        setRainLocation(rainDrops[i]);
-                    }
-                }
-
-
-
-                billboardShader.setMat4("model", rainDrops[i].modelMatrix);
-                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-            }
         }
 
         // ### TREES
@@ -686,73 +316,14 @@ int main(){
 
         // ----- DRAW TEXT ------
         int fps = calculateAverageFPS(timeSinceLastFPSCalculation, deltaTime, fpsVector, SLOW_MO);
-        //float terrainCoordBelow = getHeight(player[3][0], player[3][2]);
-        if (laserAttackCharge > 3.0f){
-            renderText(t, "\\\\\\\\\\\\                               attack charge: "
-                    + std::to_string(laserAttackCharge));
-        }
 
-        std::string text =      "\\\\";
-                                //"camera coordinates: [" + std::to_string(cameraPos.x) + ", "+ std::to_string(cameraPos.y) + ", " + std::to_string(cameraPos.z) + "]\\"
-                                //"player coordinates: [" + std::to_string(player[3][0]) + ", "+ std::to_string(player[3][1]) + ", " + std::to_string(player[3][2]) + "]\\"
-                                //"terrain y coord (below player): " + std::to_string(terrainCoordBelow) +
-                                //+ std::to_string(calculateDistance(glm::vec3(player[3][0], player[3][1], player[3][2]), glm::vec3(enemy[3][0], enemy[3][1], enemy[3][2]))) +
+        std::string text;
         if (SHOW_FPS)
             text += "\\" + std::to_string(fps) + " fps";
-                                //if (IS_RAINING){
-                                //    text += "\\" + std::to_string(rainDropsArraySize) + " active rain drops";
-                                //}
-        float waitingTime = glfwGetTime() - timeSinceLastInput;
-        if (allowPlayerTeleportation){
-            text += "\\\\                           press space or \"b\" to teleport!";
-        }
-        if (waitingTime < 1.0f){
-            if (allowPlayerTeleportation)
-                text += "\\\\\\\\\\\\\\";
-            else{
-                for (int i = 0; i < 10; i++){
-                text += "\\";
-                }
-            }
-
-            text += "                                      ";
-            text += std::to_string(waitingTime);
-        }
-
-        if(SLOW_MO)
-            text += dialogue;
-        else
-            dialogue = "";
-
         if (FREECAM_CONTROLS_ENABLED){
             text += "\\camera coordinates: [" + std::to_string(cameraPos.x) + ", "+ std::to_string(cameraPos.y) + ", " + std::to_string(cameraPos.z) + "]";
         }
-
         renderText(t, text);
-        renderText(t, animationText);
-
-        // ----- HEALTH BAR ----- (code is weird because it uses the text renderer to render both text and health bar)
-
-        glDisable(GL_DEPTH_TEST);
-        t.use();
-        if (health < 0)
-            t.setBool("invertColor", true);
-        else
-            t.setBool("blueColor", true);
-        t.setFloat("textXOffset", 1.0f);
-        t.setFloat("textYOffset", -1.8f);
-
-        glDeleteVertexArrays(1, &healthVAO); // delete here to prevent memory leak in generateVAOandEBO call
-        glDeleteBuffers(1, &healthVBO);
-        glDeleteBuffers(1, &healthEBO);
-        generateVAOandEBO(healthVAO, healthVBO, healthEBO, healthVerticesByteSize, healthIndicesByteSize, healthVertices, healthIndices);
-        glBindVertexArray(healthVAO);
-        setTextureUV(t, redSquareUV, false);
-
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        glEnable(GL_DEPTH_TEST);
-        t.setBool("blueColor", false);
-        renderText(t, "\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\                             *enemy               player*");
 
         // end of a frame
 
