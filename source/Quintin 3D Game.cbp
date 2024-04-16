@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="Quintin 3D Game" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/Ocero 3D Game" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option use_console_runner="0" />
+				<Compiler>
+					<Add option="-g" />
+					<Add directory="../GLFW/include" />
+				</Compiler>
+				<Linker>
+					<Add option="-static" />
+					<Add library="../GLFW/lib/libglfw3.a" />
+					<Add library="../GLFW/lib/libglfw3dll.a" />
+					<Add library="../../../../../../../../Windows/System32/opengl32.dll" />
+					<Add library="gdi32" />
+					<Add library="sfml-audio-d" />
+					<Add library="sfml-system-d" />
+					<Add directory="../GLFW/lib" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/Ocero 3D Game" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add directory="../GLFW/include" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="-static" />
+					<Add library="../GLFW/lib/libglfw3.a" />
+					<Add library="../GLFW/lib/libglfw3dll.a" />
+					<Add library="../../../../../../../../Windows/System32/opengl32.dll" />
+					<Add library="gdi32" />
+					<Add library="sfml-audio" />
+					<Add library="sfml-system" />
+					<Add directory="../GLFW/lib" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add directory="../SFML/include" />
+		</Compiler>
+		<Linker>
+			<Add option="-static" />
+			<Add directory="../SFML/lib" />
+		</Linker>
+		<Unit filename="game/calculate_fps.cpp" />
+		<Unit filename="game/calculate_fps.h" />
+		<Unit filename="game/entity.cpp" />
+		<Unit filename="game/entity.h" />
+		<Unit filename="game/gameplay.cpp" />
+		<Unit filename="game/gameplay.h" />
+		<Unit filename="game/main_menu.cpp" />
+		<Unit filename="game/main_menu.h" />
+		<Unit filename="game/sound.cpp" />
+		<Unit filename="game/sound.h" />
+		<Unit filename="glad.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="globals.cpp" />
+		<Unit filename="globals.h" />
+		<Unit filename="main.cpp" />
+		<Unit filename="opengl/camera_variables.cpp" />
+		<Unit filename="opengl/camera_variables.h" />
+		<Unit filename="opengl/shader_functions.cpp" />
+		<Unit filename="opengl/shader_functions.h" />
+		<Unit filename="opengl/text_render.cpp" />
+		<Unit filename="opengl/text_render.h" />
+		<Unit filename="opengl/textures.cpp" />
+		<Unit filename="opengl/textures.h" />
+		<Unit filename="opengl/window_functions.cpp" />
+		<Unit filename="opengl/window_functions.h" />
+		<Unit filename="resources/heightmap.png" />
+		<Unit filename="resources/sounds/punch.wav" />
+		<Unit filename="resources/textures/GrassTiles.png" />
+		<Unit filename="resources/textures/TextAtlas.png" />
+		<Unit filename="resources/textures/TextureAtlas.png" />
+		<Unit filename="rr.rc">
+			<Option compilerVar="WINDRES" />
+		</Unit>
+		<Unit filename="shaders/billboard_shader.fs" />
+		<Unit filename="shaders/billboard_shader.vs" />
+		<Unit filename="shaders/phong_lighting.fs" />
+		<Unit filename="shaders/phong_lighting.vs" />
+		<Unit filename="shaders/text_shader.fs" />
+		<Unit filename="shaders/text_shader.vs" />
+		<Unit filename="shapes/initialize_shape_vertices.cpp" />
+		<Unit filename="shapes/initialize_shape_vertices.h" />
+		<Unit filename="shapes/shapes.cpp" />
+		<Unit filename="shapes/shapes.h" />
+		<Unit filename="shapes/terrain.cpp" />
+		<Unit filename="shapes/terrain.h" />
+		<Unit filename="unused_code.txt" />
+		<Extensions>
+			<AutoVersioning>
+				<Scheme minor_max="10" build_max="0" rev_max="0" rev_rand_max="10" build_times_to_increment_minor="100" />
+				<Settings autoincrement="1" date_declarations="1" use_define="0" update_manifest="0" do_auto_increment="0" ask_to_increment="0" language="C++" svn="0" svn_directory="" header_path="version.h" />
+				<Changes_Log show_changes_editor="0" app_title="released version %M.%m.%b of %p" changeslog_path="ChangesLog.txt" />
+				<Code header_guard="VERSION_H" namespace="AutoVersion" prefix="" />
+			</AutoVersioning>
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
