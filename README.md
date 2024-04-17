@@ -1,5 +1,4 @@
 # Forked from the OpenGL Game Project!
-![Screenshot 2024-03-07 212524](https://github.com/BrandonLQuintin/Quintin-OpenGL-Project/assets/104369655/b184681c-8144-431b-b95e-373e22e6d492)
 
 # Quintin-Wolf-And-Sheep-AI
 
