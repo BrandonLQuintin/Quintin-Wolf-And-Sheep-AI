@@ -38,6 +38,8 @@
 #include "shapes/terrain.h"
 #include "game/sound.h"
 
+void spawnSheep(std::vector<sheep> &sheepVector);
+void spawnWolf(std::vector<wolves> &wolfVector);
 
 int main(){
     GLFWwindow* window = createWindow();
@@ -91,30 +93,12 @@ int main(){
     std::vector<float> shadowAtlasUV = returnTextureUV(0, 2);
     std::vector<float> rainAtlasUV = returnTextureUV(2, 2);
 
-    std::vector<float> playerBackUV = returnTextureUV(0, 3);
-    std::vector<float> playerRightUV = returnTextureUV(0, 4);
-    std::vector<float> playerFrontUV = returnTextureUV(0, 5);
-    std::vector<float> playerLeftUV = returnTextureUV(0, 6);
-    std::vector<float> playerInjuryUV = returnTextureUV(1, 5);
-    std::vector<float> playerShieldUV = returnTextureUV(0, 1);
-
-    std::vector<float> enemyBackUV = returnTextureUV(0, 7);
-    std::vector<float> enemyRightUV = returnTextureUV(0, 8);
-    std::vector<float> enemyFrontUV = returnTextureUV(0, 9);
-    std::vector<float> enemyLeftUV = returnTextureUV(0, 10);
-    std::vector<float> enemyInjuryUV = returnTextureUV(1, 9);
+    std::vector<float> wolfAtlasUV = returnTextureUV(5, 0);
+    std::vector<float> sheepAtlasUV = returnTextureUV(4, 0);
 
     std::vector<float> dust1AtlasUV = returnTextureUV(13, 3);
     std::vector<float> dust2AtlasUV = returnTextureUV(14, 3);
     std::vector<float> dust3AtlasUV = returnTextureUV(15, 3);
-
-    std::vector<float> spark1AtlasUV = returnTextureUV(13, 0);
-    std::vector<float> spark2AtlasUV = returnTextureUV(14, 0);
-    std::vector<float> spark3AtlasUV = returnTextureUV(15, 0);
-
-    std::vector<float> punch1AtlasUV = returnTextureUV(13, 1);
-    std::vector<float> punch2AtlasUV = returnTextureUV(14, 1);
-    std::vector<float> punch3AtlasUV = returnTextureUV(15, 1);
 
     std::vector<float> redSquareUV = returnTextureUV(1, 1);
 
@@ -205,6 +189,37 @@ int main(){
         billboards[i].modelMatrix = glm::translate(billboards[i].modelMatrix, glm::vec3(1 - (i * 1.1), 0.0f + heightOffset, -5.0f));
     }
 
+    // 100 sheeps
+    std::vector<sheep> sheeps(1000);
+    for (int i = 0; i < sheeps.size(); i++){
+        sheeps[i].modelMatrix[3][0] = randomInRange(-200.0f, 200.0f);
+        sheeps[i].modelMatrix[3][2] = randomInRange(-200.0f, 200.0f);
+        sheeps[i].modelMatrix[3][1] = getHeight(sheeps[i].modelMatrix[3][0], sheeps[i].modelMatrix[3][2]) + 0.5f;
+
+        sheeps[i].goTo.x = randomInRange(-200.0f, 200.0f);
+        sheeps[i].goTo.z = randomInRange(-200.0f, 200.0f);
+        sheeps[i].goTo.y = getHeight(sheeps[i].goTo.x, sheeps[i].goTo.z) + 0.5f;
+    }
+    sheeps[0].modelMatrix[3][0] = 5.0f;
+    sheeps[0].modelMatrix[3][2] = 0.0f;
+    sheeps[0].modelMatrix[3][1] = getHeight(sheeps[0].modelMatrix[3][0], sheeps[0].modelMatrix[3][2]) + 0.5f;
+
+    // 10 wolves
+    std::vector<wolves> wolves(10);
+    for (int i = 0; i < wolves.size(); i++){
+        wolves[i].modelMatrix[3][0] = randomInRange(-200.0f, 200.0f);
+        wolves[i].modelMatrix[3][2] = randomInRange(-200.0f, 200.0f);
+        wolves[i].modelMatrix[3][1] = getHeight(wolves[i].modelMatrix[3][0], wolves[i].modelMatrix[3][2]) + 0.5f;
+
+        wolves[i].goTo = glm::vec3(randomInRange(-200.0f, 200.0f), 0.0f, randomInRange(-200.0f, 200.0f));
+        wolves[i].goTo.y = getHeight(wolves[i].goTo.x, wolves[i].goTo.z);
+    }
+    wolves[0].modelMatrix[3][0] = 5.0f;
+    wolves[0].modelMatrix[3][2] = -5.0f;
+    wolves[0].modelMatrix[3][1] = getHeight(wolves[0].modelMatrix[3][0], wolves[0].modelMatrix[3][2]) + 0.5f;
+
+
+
     // rain drops
     rainEntity rainDrops[600];
     int rainDropsArraySize = sizeof(rainDrops) / sizeof(rainDrops[0]);
@@ -230,6 +245,7 @@ int main(){
 
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
+        //deltaTime *= 1000.0f;
 
         lastFrame = currentFrame;
         processInput(window);
@@ -265,6 +281,126 @@ int main(){
             phongShader.setMat4("model", terrains[i].modelMatrix);
             glDrawElements(GL_TRIANGLES, phongTerrainIndicesVector.size(), GL_UNSIGNED_INT, 0);
         }
+
+        // ### SHEEPS
+        billboardShader.use();
+        glBindVertexArray(phongBillboardVAO);
+        setTextureUV(billboardShader, sheepAtlasUV, false);
+        for (int i = 0; i < sheeps.size(); i++){
+            sheeps[i].distanceFromDestination = calculateDistance(glm::vec3(sheeps[i].modelMatrix[3][0], sheeps[i].modelMatrix[3][1], sheeps[i].modelMatrix[3][2]),
+                                                            sheeps[i].goTo);
+            sheeps[i].hunger -= deltaTime * 0.1f;
+            if (sheeps[i].hunger < 0)
+                sheeps.erase(sheeps.begin() + i);
+
+            glm::vec3 sheepPos = glm::vec3(sheeps[i].modelMatrix[3][0], sheeps[i].modelMatrix[3][1], sheeps[i].modelMatrix[3][2]);
+
+
+            if (sheeps[i].distanceFromDestination > 1.0f){
+                if (sheeps[i].isRunning)
+                    moveToPoint(sheepPos, sheeps[i].goTo, deltaTime, 1.0f);
+                else
+                    moveToPoint(sheepPos, sheeps[i].goTo, deltaTime, 1.0f);
+                sheeps[i].modelMatrix[3][0] = sheepPos.x;
+                sheeps[i].modelMatrix[3][1] = getHeight(sheepPos.x, sheepPos.z) + 0.5f;
+                sheeps[i].modelMatrix[3][2] = sheepPos.z;
+            }
+            else{
+                spawnSheep(sheeps);
+                sheeps[i].hunger = 40.0f;
+                sheeps[i].goTo.x = randomInRange(-200.0f, 200.0f);
+                sheeps[i].goTo.z = randomInRange(-200.0f, 200.0f);
+                sheeps[i].goTo.y = getHeight(sheeps[i].goTo.x, sheeps[i].goTo.z) + 0.5f;
+                //std::cout << "New goTo for sheep " << i << "!" << std::endl;
+            }
+
+            // find a sheep target
+
+
+            if (sheeps[i].isRunning){
+                sheeps[i].timeSinceRunning -= deltaTime * 10.0f;
+                if (sheeps[i].timeSinceRunning < 0){
+                    sheeps[i].isRunning = false;
+                    wolves[sheeps[i].nearestWolf].isChasing = false;
+                }
+            }
+            float nearestDistance = 1000.0f;
+            if (!sheeps[i].isRunning){
+                for (int x = 0; x < wolves.size(); x++){
+                    float distanceFromWolf = calculateDistance(sheepPos, glm::vec3(wolves[x].modelMatrix[3][0], wolves[x].modelMatrix[3][1], wolves[x].modelMatrix[3][2]));
+                    if (distanceFromWolf < nearestDistance){
+                        nearestDistance = distanceFromWolf;
+
+                        if (nearestDistance < 5.0f){
+                            //std::cout << "S " << i << " is getting chased!" << std::endl;
+                            sheeps[i].isRunning = true;
+                            wolves[x].isChasing = true;
+                            sheeps[i].nearestWolf = x;
+                            wolves[x].nearestSheep = i;
+                            sheeps[i].timeSinceRunning = 100.0f;
+                            wolves[x].timeSinceChasing = 100.0f;
+                        }
+                    }
+                }
+            }
+
+
+
+            billboardShader.setMat4("model", sheeps[i].modelMatrix);
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        }
+
+        // ### WOLVES
+        billboardShader.use();
+        glBindVertexArray(phongBillboardVAO);
+        setTextureUV(billboardShader, wolfAtlasUV, false);
+        for (int i = 0; i < wolves.size(); i++){
+            wolves[i].distanceFromDestination = calculateDistance(glm::vec3(wolves[i].modelMatrix[3][0], wolves[i].modelMatrix[3][1], wolves[i].modelMatrix[3][2]),
+                                                            wolves[i].goTo);
+
+            wolves[i].hunger -= deltaTime * 0.1f;
+            if (wolves[i].hunger < 0){
+                std::cout << "Wolf " << i << " starved to death!" << std::endl;
+                wolves.erase(wolves.begin() + i);
+            }
+
+
+            if (wolves[i].distanceFromDestination > 1.0f){
+                glm::vec3 wolfPos = glm::vec3(wolves[i].modelMatrix[3][0], wolves[i].modelMatrix[3][1], wolves[i].modelMatrix[3][2]);
+
+                if (wolves[i].isChasing){
+                    wolves[i].goTo = glm::vec3(sheeps[wolves[i].nearestSheep].goTo.x, sheeps[wolves[i].nearestSheep].goTo.y, sheeps[wolves[i].nearestSheep].goTo.z);
+                    moveToPoint(wolfPos, wolves[i].goTo, deltaTime, 5.0f);
+                    // check if wolf killed sheep
+                    float distanceFromSheep = calculateDistance(wolfPos, glm::vec3(sheeps[wolves[i].nearestSheep].modelMatrix[3][0], sheeps[wolves[i].nearestSheep].modelMatrix[3][1], sheeps[wolves[i].nearestSheep].modelMatrix[3][2]));
+                    if (distanceFromSheep < 1.0f){
+                        sheeps.erase(sheeps.begin() + wolves[i].nearestSheep);
+                        std::cout << "Sheep " << wolves[i].nearestSheep << " has been killed!" << std::endl;
+                        wolves[i].hunger = 100.0f;
+                        wolves[i].isChasing = false;
+                        wolves[i].timeSinceChasing = 0.0f;
+                    }
+                }
+                else
+                    moveToPoint(wolfPos, wolves[i].goTo, deltaTime, 1.0f);
+
+                moveToPoint(wolfPos, wolves[i].goTo, deltaTime, 1.0f);
+                wolves[i].modelMatrix[3][0] = wolfPos.x;
+                wolves[i].modelMatrix[3][1] = getHeight(wolfPos.x, wolfPos.z) + 0.5f;
+                wolves[i].modelMatrix[3][2] = wolfPos.z;
+            }
+            else{
+                wolves[i].goTo.x = randomInRange(-200.0f, 200.0f);
+                wolves[i].goTo.z = randomInRange(-200.0f, 200.0f);
+                wolves[i].goTo.y = getHeight(wolves[i].goTo.x, wolves[i].goTo.z) + 0.5f;
+                //std::cout << "New goTo for wolf " << i << "!" << std::endl;
+            }
+
+            billboardShader.setMat4("model", wolves[i].modelMatrix);
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        }
+
 
         // ### TREES
         phongShader.use();
@@ -318,11 +454,14 @@ int main(){
         int fps = calculateAverageFPS(timeSinceLastFPSCalculation, deltaTime, fpsVector, SLOW_MO);
 
         std::string text;
+        text += "\\" + std::to_string(sheeps[0].hunger);
         if (SHOW_FPS)
             text += "\\" + std::to_string(fps) + " fps";
         if (FREECAM_CONTROLS_ENABLED){
-            text += "\\camera coordinates: [" + std::to_string(cameraPos.x) + ", "+ std::to_string(cameraPos.y) + ", " + std::to_string(cameraPos.z) + "]";
+            text += "\\camera coordinates: [" + std::to_string(cameraPos.x) + ", "+ std::to_string(cameraPos.y) + ", " + std::to_string(cameraPos.z) + "]\\\\\\world size: 200 x 200 meters";
         }
+        text += "\\total sheeps: " + std::to_string(sheeps.size());
+        text += "\\total wolves: " + std::to_string(wolves.size());
         renderText(t, text);
 
         // end of a frame
@@ -336,4 +475,31 @@ int main(){
 
 }
 
+
+void spawnSheep(std::vector<sheep> &sheepVector){
+    sheep newSheep;
+
+    newSheep.modelMatrix[3][0] = randomInRange(-200.0f, 200.0f);
+    newSheep.modelMatrix[3][2] = randomInRange(-200.0f, 200.0f);
+    newSheep.modelMatrix[3][1] = getHeight(newSheep.modelMatrix[3][0], newSheep.modelMatrix[3][2]) + 0.5f;
+
+    newSheep.goTo.x = randomInRange(-200.0f, 200.0f);
+    newSheep.goTo.z = randomInRange(-200.0f, 200.0f);
+    newSheep.goTo.y = getHeight(newSheep.goTo.x, newSheep.goTo.z) + 0.5f;
+
+    sheepVector.push_back(newSheep);
+}
+void spawnWolf(std::vector<wolves> &wolfVector){
+    wolves newWolf;
+
+    newWolf.modelMatrix[3][0] = randomInRange(-200.0f, 200.0f);
+    newWolf.modelMatrix[3][2] = randomInRange(-200.0f, 200.0f);
+    newWolf.modelMatrix[3][1] = getHeight(newWolf.modelMatrix[3][0], newWolf.modelMatrix[3][2]) + 0.5f;
+
+    newWolf.goTo.x = randomInRange(-200.0f, 200.0f);
+    newWolf.goTo.z = randomInRange(-200.0f, 200.0f);
+    newWolf.goTo.y = getHeight(newWolf.goTo.x, newWolf.goTo.z) + 0.5f;
+
+    wolfVector.push_back(newWolf);
+}
 

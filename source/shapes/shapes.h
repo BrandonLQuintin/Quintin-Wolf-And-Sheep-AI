@@ -8,6 +8,30 @@ struct shape {
     glm::mat4 modelMatrix = glm::mat4(1.0f); // initialized to an identity matrix
 };
 
+struct sheep {
+    glm::mat4 modelMatrix = glm::mat4(1.0f);
+    glm::vec3 goTo = glm::vec3(0.0f, 0.0f, 0.0f);
+    int nearestWolf = 0;
+    float distanceFromFood = 0.0f;
+    float distanceFromDestination = 0.0f;
+    float hunger = 40.0f;
+    float energy = 100.0f;
+    float timeSinceRunning = 0.0f;
+    bool isRunning = false;
+};
+
+struct wolves {
+    glm::mat4 modelMatrix = glm::mat4(1.0f);
+    glm::vec3 goTo = glm::vec3(0.0f, 0.0f, 0.0f);
+    int nearestSheep = 0;
+    float distanceFromFood = 0.0f;
+    float distanceFromDestination = 0.0f;
+    float hunger = 100.0f;
+    float energy = 100.0f;
+    float timeSinceChasing = 0.0f;
+    bool isChasing = false;
+};
+
 struct tree {
     glm::mat4 modelMatrix = glm::mat4(1.0f);
     glm::mat4 cloneModelMatrix = glm::mat4(1.0f);
