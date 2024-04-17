@@ -2,8 +2,10 @@
 
 std::random_device rd;
 std::mt19937 gen(rd()); // for use with random
-
+int sheepIDCounter = 0;
 float MOVEMENT_SPEED = 12.0f;
+float timer = 0.0f;
+int totalSheeps = 0;
 
 // game settings
 bool restartGame = false;

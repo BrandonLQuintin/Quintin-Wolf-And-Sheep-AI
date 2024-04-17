@@ -9,7 +9,9 @@
 #include <random>
 #include <SFML/Audio.hpp>
 
-
+extern float timer;
+extern int totalSheeps;
+extern int sheepIDCounter;
 float randomInRange(float min, float max);
 
 // game settings
