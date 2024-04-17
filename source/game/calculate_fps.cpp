@@ -8,8 +8,8 @@ int calculateAverageFPS(float &timeSinceCalculation, float deltaTime, std::vecto
         int fps;
         if (gameOver)
             fps = 404;
-        else if (isSlowMO && !animationModeActivate)
-            fps = 1.0f / (deltaTime * SLOW_MO_MULTIPLIER);
+        else if (HIGH_SPEED && !animationModeActivate)
+            fps = 1.0f / (deltaTime / 200.0f);
         else if (animationModeActivate)
             fps = 1.0f / (animationDeltaTime);
         else
