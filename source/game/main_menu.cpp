@@ -17,9 +17,9 @@ void processMainMenu(GLFWwindow* window, Shader t, int &choice){
         outputText += "\\  start program";
 
     if (choice == 1)
-        outputText += std::string("\\x show_fps (DISABLED): ") + (SHOW_FPS ? "true" : "false");
+        outputText += std::string("\\x show_fps: ") + (SHOW_FPS ? "true" : "false");
     else
-        outputText += std::string("\\  show_fps (DISABLED): ") + (SHOW_FPS ? "true" : "false");
+        outputText += std::string("\\  show_fps: ") + (SHOW_FPS ? "true" : "false");
 
 
     if (choice == 2)
