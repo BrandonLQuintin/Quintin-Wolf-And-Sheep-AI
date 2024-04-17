@@ -1,4 +1,5 @@
-# Forked from the OpenGL Game Project!
+# Who dies out first? Wolf or Sheep?
+![Wolf and Sheep](https://github.com/BrandonLQuintin/Quintin-Wolf-And-Sheep-AI/assets/104369655/d1e43166-3f09-4fb9-ac9d-259e0703cc91)
 
 # Quintin-Wolf-And-Sheep-AI
 
