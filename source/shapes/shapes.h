@@ -17,7 +17,7 @@ struct sheep {
     float hunger = 40.0f;
     float energy = 100.0f;
     float timeSinceRunning = 0.0f;
-    bool isAlive = true;
+    bool isAlive = false;
     bool isRunning = false;
 };
 

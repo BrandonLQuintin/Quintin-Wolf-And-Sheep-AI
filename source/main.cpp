@@ -190,9 +190,9 @@ int main(){
     }
 
 
-    // 1000 sheeps
-    std::vector<sheep> sheeps(1000);
-    sheeps.reserve(10000);
+    // 100 sheeps
+    int initSheepCount = 100;
+    std::vector<sheep> sheeps(30000);
     for (int i = 0; i < sheeps.size(); i++){
         sheeps[i].modelMatrix[3][0] = randomInRange(-200.0f, 200.0f);
         sheeps[i].modelMatrix[3][2] = randomInRange(-200.0f, 200.0f);
@@ -201,16 +201,18 @@ int main(){
         sheeps[i].goTo.x = randomInRange(-200.0f, 200.0f);
         sheeps[i].goTo.z = randomInRange(-200.0f, 200.0f);
         sheeps[i].goTo.y = getHeight(sheeps[i].goTo.x, sheeps[i].goTo.z) + 0.5f;
+        if (i < initSheepCount)
+            sheeps[i].isAlive = true;
+
     }
-    totalSheeps = sheeps.size();
+    totalSheeps = initSheepCount;
+    sheepIndex = initSheepCount;
     sheeps[0].modelMatrix[3][0] = 5.0f;
     sheeps[0].modelMatrix[3][2] = 0.0f;
     sheeps[0].modelMatrix[3][1] = getHeight(sheeps[0].modelMatrix[3][0], sheeps[0].modelMatrix[3][2]) + 0.5f;
 
-    bool HIGH_SPEED = false;
-
-    // 10 wolves
-    std::vector<wolves> wolves(10);
+    // 3 wolves
+    std::vector<wolves> wolves(3);
     for (int i = 0; i < wolves.size(); i++){
         wolves[i].modelMatrix[3][0] = randomInRange(-200.0f, 200.0f);
         wolves[i].modelMatrix[3][2] = randomInRange(-200.0f, 200.0f);
@@ -254,6 +256,7 @@ int main(){
         if (HIGH_SPEED)
             deltaTime *= 200.0f;
 
+        /*
         timer += deltaTime * 1.0f;
         if (timer > 300.0f){
             timer = 0.0;
@@ -262,6 +265,7 @@ int main(){
                 spawnSheep(sheeps);
             }
         }
+        */
 
         lastFrame = currentFrame;
         processInput(window);
@@ -309,6 +313,7 @@ int main(){
                 sheeps[i].hunger -= deltaTime * 0.1f;
                 if (sheeps[i].hunger < 0){
                     sheeps[i].isAlive = false;
+                    std::cout << "Sheep " << i << " has starved to death!" << std::endl;
                     totalSheeps -= 1;
                 }
 
@@ -327,6 +332,9 @@ int main(){
                 }
                 else{
                     //spawnSheep(sheeps);
+                    float chance = randomInRange(0.0f, 100.0f);
+                    if (chance < 20.0f)
+                        spawnSheep(sheeps);
                     sheeps[i].hunger = 40.0f;
                     sheeps[i].goTo.x = randomInRange(-200.0f, 200.0f);
                     sheeps[i].goTo.z = randomInRange(-200.0f, 200.0f);
@@ -398,10 +406,11 @@ int main(){
                     if (distanceFromSheep < 1.0f){
                         sheeps[wolves[i].sheepID].isAlive = false;
                         totalSheeps -= 1;
+                        std::cout << "Sheep " << wolves[i].sheepID << " was killed by Wolf " << i << std::endl;
                         float chance = randomInRange(0.0f, 100.0f);
-                        if (chance < 1.0f)
+                        if (chance < 0.5f)
                             spawnWolf(wolves);
-                        wolves[i].hunger = 100.0f;
+                        wolves[i].hunger = 50.0f;
                         wolves[i].isChasing = false;
                         wolves[i].timeSinceChasing = 0.0f;
                     }
@@ -478,11 +487,13 @@ int main(){
         int fps = calculateAverageFPS(timeSinceLastFPSCalculation, deltaTime, fpsVector, SLOW_MO);
 
         std::string text;
+        text += "fps: " + std::to_string(fps);
         if (FREECAM_CONTROLS_ENABLED){
             text += "\\camera coordinates: [" + std::to_string(cameraPos.x) + ", "+ std::to_string(cameraPos.y) + ", " + std::to_string(cameraPos.z) + "]\\\\\\world size: 200 x 200 meters";
         }
         if (totalSheeps < 0)
             totalSheeps = 0;
+
         text += "\\total sheeps: " + std::to_string(totalSheeps);
         text += "\\total wolves: " + std::to_string(wolves.size());
         renderText(t, text);
@@ -500,18 +511,20 @@ int main(){
 
 
 void spawnSheep(std::vector<sheep> &sheepVector){
-    sheep newSheep;
+    if (totalSheeps >= 2){
+       totalSheeps += 1;
+        sheepIndex += 1;
+        sheepVector[sheepIndex].modelMatrix[3][0] = randomInRange(-200.0f, 200.0f);
+        sheepVector[sheepIndex].modelMatrix[3][2] = randomInRange(-200.0f, 200.0f);
+        sheepVector[sheepIndex].modelMatrix[3][1] = getHeight(sheepVector[sheepIndex].modelMatrix[3][0], sheepVector[sheepIndex].modelMatrix[3][2]) + 0.5f;
 
-    newSheep.modelMatrix[3][0] = randomInRange(-200.0f, 200.0f);
-    newSheep.modelMatrix[3][2] = randomInRange(-200.0f, 200.0f);
-    newSheep.modelMatrix[3][1] = getHeight(newSheep.modelMatrix[3][0], newSheep.modelMatrix[3][2]) + 0.5f;
+        sheepVector[sheepIndex].goTo.x = randomInRange(-200.0f, 200.0f);
+        sheepVector[sheepIndex].goTo.z = randomInRange(-200.0f, 200.0f);
+        sheepVector[sheepIndex].goTo.y = getHeight(sheepVector[sheepIndex].goTo.x, sheepVector[sheepIndex].goTo.z) + 0.5f;
+        sheepVector[sheepIndex].isAlive = true;
+        std::cout << "Sheep " << sheepIndex << " was born!" << std::endl;
+    }
 
-    newSheep.goTo.x = randomInRange(-200.0f, 200.0f);
-    newSheep.goTo.z = randomInRange(-200.0f, 200.0f);
-    newSheep.goTo.y = getHeight(newSheep.goTo.x, newSheep.goTo.z) + 0.5f;
-
-    totalSheeps += 1;
-    sheepVector.push_back(newSheep);
 }
 void spawnWolf(std::vector<wolves> &wolfVector){
     wolves newWolf;

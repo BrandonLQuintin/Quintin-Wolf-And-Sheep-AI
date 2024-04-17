@@ -213,6 +213,9 @@ void processInput(GLFWwindow* window){
     }
 
     if (FREECAM_CONTROLS_ENABLED){
+        float adjustedDeltaTime = deltaTime;
+        if (HIGH_SPEED)
+            adjustedDeltaTime = (deltaTime / 200.0f);
         terrainCoordBelowCamera = getHeight(cameraPos.x, cameraPos.z);
         const float collisionLimit = terrainCoordBelowCamera + 1.0f;
 
@@ -220,7 +223,7 @@ void processInput(GLFWwindow* window){
             MOVEMENT_SPEED = 50.0f;
         else
             MOVEMENT_SPEED = 12.0f;
-        const float cameraSpeed = MOVEMENT_SPEED * deltaTime;
+        const float cameraSpeed = MOVEMENT_SPEED * adjustedDeltaTime;
 
         if (glfwJoystickPresent(GLFW_JOYSTICK_1) == GLFW_TRUE){
             GLFWgamepadstate state;
@@ -323,6 +326,7 @@ void processInput(GLFWwindow* window){
                 SLOW_MO = false;
             }
         }
+
 
 
         float adjustedDeltaTime = deltaTime;

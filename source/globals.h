@@ -8,9 +8,10 @@
 #include <vector>
 #include <random>
 #include <SFML/Audio.hpp>
-
+extern bool HIGH_SPEED;
 extern float timer;
 extern int totalSheeps;
+extern int sheepIndex;
 extern int sheepIDCounter;
 float randomInRange(float min, float max);
 

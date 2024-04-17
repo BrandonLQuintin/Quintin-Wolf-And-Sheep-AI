@@ -91,6 +91,7 @@
 		<Unit filename="resources/textures/TextureAtlas.png" />
 		<Unit filename="rr.rc">
 			<Option compilerVar="WINDRES" />
+			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="shaders/billboard_shader.fs" />
 		<Unit filename="shaders/billboard_shader.vs" />

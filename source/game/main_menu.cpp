@@ -9,7 +9,7 @@ void processMainMenu(GLFWwindow* window, Shader t, int &choice){
 
     std::string outputText;
 
-    outputText =  "\\press enter to select\\";
+    outputText =  "\\press enter to select, click tab to pause simulation!\\";
 
     if (choice == 0)
         outputText += "\\x start program";
@@ -17,9 +17,9 @@ void processMainMenu(GLFWwindow* window, Shader t, int &choice){
         outputText += "\\  start program";
 
     if (choice == 1)
-        outputText += std::string("\\x show_fps: ") + (SHOW_FPS ? "true" : "false");
+        outputText += std::string("\\x fast_simulation: ") + (HIGH_SPEED ? "true" : "false");
     else
-        outputText += std::string("\\  show_fps: ") + (SHOW_FPS ? "true" : "false");
+        outputText += std::string("\\  fast_simulation: ") + (HIGH_SPEED ? "true" : "false");
 
 
     if (choice == 2)
@@ -32,7 +32,7 @@ void processMainMenu(GLFWwindow* window, Shader t, int &choice){
 
     if (enterKeyPressed){
         if (choice == 1){
-            SHOW_FPS = !SHOW_FPS;
+            HIGH_SPEED = !HIGH_SPEED;
             enterKeyPressed = false;
         }
         else if (choice == 2){

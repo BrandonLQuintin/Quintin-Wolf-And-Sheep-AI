@@ -6,7 +6,8 @@ int sheepIDCounter = 0;
 float MOVEMENT_SPEED = 12.0f;
 float timer = 0.0f;
 int totalSheeps = 0;
-
+int sheepIndex = 0;
+bool HIGH_SPEED = false;
 // game settings
 bool restartGame = false;
 bool IS_RAINING = true;
