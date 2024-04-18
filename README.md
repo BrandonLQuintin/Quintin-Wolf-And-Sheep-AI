@@ -1,7 +1,7 @@
 # Who dies out first? Wolf or Sheep?
 ![Wolf and Sheep](https://github.com/BrandonLQuintin/Quintin-Wolf-And-Sheep-AI/assets/104369655/d1e43166-3f09-4fb9-ac9d-259e0703cc91)
 
-# Quintin-Wolf-And-Sheep-AI
+# Quintin-Wolf-And-Sheep-AI (This project is a fork from my OpenGL project)
 
 Runs in the Code::Blocks IDE (MingW 64 bit compiler) and on Windows:
 1. Go to your cloned reposity folder
